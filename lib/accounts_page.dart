@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../data.dart';
-import 'account_detail_page.dart';
+//import 'account_detail_page.dart';
 import 'transactions_page.dart';
 
 class AccountsPage extends StatefulWidget {
