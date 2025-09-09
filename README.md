@@ -1,7 +1,3 @@
-Absolutely! Here's a well-structured documentation draft you can use for your GitHub repository: [MOSAMI00/Mobile-application-development](https://github.com/MOSAMI00/Mobile-application-development).
-
----
-
 ## 📱 Accounting Blog Application
 
 A mobile application built using **Dart** and the **Flutter** framework, designed to serve as a blogging platform for accounting-related content.
