@@ -10,5 +10,5 @@ class CategoriesController {
   Future<int> addCategorie(String name) =>
       _db.createCategory(CategoryModel(name: name));
 
-//Future<int> toggle(int id, bool enabled) => _db.toggleCategory(id, enabled);
+  //Future<int> toggle(int id, bool enabled) => _db.toggleCategory(id, enabled);
 }

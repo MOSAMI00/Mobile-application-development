@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:test1/services/theme_provider.dart';
 import 'package:test1/views/CategoriesPage.dart';
 import 'package:test1/views/accounts/accounts_page.dart';
-import 'package:test1/views/accounts/add_account_page.dart' show AddAccountPage;
-import 'package:test1/services/preferences_service.dart';
+import 'package:test1/views/accounts/add_account_page.dart';
 import 'package:test1/views/settings_page.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await PreferencesService.init();
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,36 +22,37 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final prefs = PreferencesService();
-
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'مدونة الحسابات',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: prefs.primaryColor,
-          primary: prefs.primaryColor,
-          // secondary: prefs.secondaryColor,
-        ),
-        brightness: Brightness.light,
-      ),
-      darkTheme: ThemeData(
-        useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: prefs.primaryColor,
-          primary: prefs.primaryColor,
-          //secondary: prefs.secondaryColor,
-          brightness: Brightness.dark,
-        ),
-        brightness: Brightness.dark,
-      ),
-      themeMode: prefs.themeMode,
-      home: const HomePage(),
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'مدونة الحسابات',
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: themeProvider.primaryColor,
+              primary: themeProvider.primaryColor,
+            ),
+            brightness: Brightness.light,
+          ),
+          darkTheme: ThemeData(
+            useMaterial3: true,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: themeProvider.primaryColor,
+              primary: themeProvider.primaryColor,
+              brightness: Brightness.dark,
+            ),
+            brightness: Brightness.dark,
+          ),
+          themeMode: themeProvider.themeMode,
+          home: const HomePage(),
+        );
+      },
     );
   }
 }
 
+// باقي الكود...
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
