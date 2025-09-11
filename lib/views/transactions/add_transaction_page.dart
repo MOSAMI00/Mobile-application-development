@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../data.dart';
+import '../../../data.dart';
 
 class AddTransactionPage extends StatefulWidget {
   final int accountId;
@@ -39,11 +39,21 @@ class _AddTransactionPageState extends State<AddTransactionPage> {
           children: [
             DropdownButton<String>(
               value: type,
-              items: ['وارد', 'صادر'].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+              items: [
+                'وارد',
+                'صادر',
+              ].map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
               onChanged: (v) => setState(() => type = v!),
             ),
-            TextField(controller: amountCtrl, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: "المبلغ")),
-            TextField(controller: categoryCtrl, decoration: const InputDecoration(labelText: "التصنيف")),
+            TextField(
+              controller: amountCtrl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: "المبلغ"),
+            ),
+            TextField(
+              controller: categoryCtrl,
+              decoration: const InputDecoration(labelText: "التصنيف"),
+            ),
             const SizedBox(height: 20),
             ElevatedButton(onPressed: _save, child: const Text("حفظ")),
           ],

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../data.dart';
+import '../../../data.dart';
+import '../../models/account.dart';
 import 'add_transaction_page.dart';
 
 class TransactionsPage extends StatefulWidget {
-  final Map<String, dynamic> account;
+  final Account account;
   const TransactionsPage({super.key, required this.account});
 
   @override
@@ -11,9 +12,8 @@ class TransactionsPage extends StatefulWidget {
 }
 
 class _TransactionsPageState extends State<TransactionsPage> {
-
   List<Map<String, dynamic>> get accountTxs =>
-      transactions.where((tx) => tx['accountId'] == widget.account['id']).toList();
+      transactions.where((tx) => tx['accountId'] == widget.account.id).toList();
 
   double get balance {
     double sum = 0;
@@ -28,20 +28,22 @@ class _TransactionsPageState extends State<TransactionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.account['name'])),
+      appBar: AppBar(title: Text(widget.account.name)),
       body: Column(
         children: [
           Hero(
-            tag: 'accountHero${widget.account['id']}',
+            tag: 'accountHero${widget.account.id}',
             child: CircleAvatar(
               radius: 50,
-              child: Text(widget.account['name'][0].toUpperCase(),
+              child: Text(
+                widget.account.name[0].toUpperCase(),
                 style: const TextStyle(fontSize: 40),
               ),
             ),
           ),
           const SizedBox(height: 10),
-          Text("الرصيد الحالي: $balance",
+          Text(
+            "الرصيد الحالي: $balance",
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const Divider(),
@@ -51,7 +53,10 @@ class _TransactionsPageState extends State<TransactionsPage> {
               itemBuilder: (_, i) {
                 final tx = accountTxs[i];
                 return ListTile(
-                  leading: Icon(tx['type'] == 'وارد' ? Icons.arrow_downward : Icons.arrow_upward,
+                  leading: Icon(
+                    tx['type'] == 'وارد'
+                        ? Icons.arrow_downward
+                        : Icons.arrow_upward,
                     color: tx['type'] == 'وارد' ? Colors.green : Colors.red,
                   ),
                   title: Text("${tx['type']} - ${tx['amount']}"),
@@ -67,7 +72,7 @@ class _TransactionsPageState extends State<TransactionsPage> {
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => AddTransactionPage(accountId: widget.account['id']),
+              builder: (_) => AddTransactionPage(accountId: widget.account.id!),
             ),
           );
           _refresh();
