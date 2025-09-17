@@ -80,6 +80,3 @@ Pull requests are welcome! For major changes, please open an issue first to disc
 
 This project is open-source and available under the [MIT License](https://choosealicense.com/licenses/mit/).
 
----
-
-Would you like help customizing this further for your specific app structure or adding screenshots and badges?
