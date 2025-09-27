@@ -1,8 +1,8 @@
 class Account {
   final int? id;
-  final String name;
-  final double balance;
-  final int categoryId;
+  String name;
+  double balance;
+  int categoryId;
 
   Account({
     this.id,

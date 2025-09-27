@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:test1/services/theme_provider.dart';
 
 
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -11,6 +12,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+
   final List<Color> _colorOptions = [
     Colors.blue,
     Colors.green,
@@ -21,6 +23,27 @@ class _SettingsPageState extends State<SettingsPage> {
     Colors.pink,
     Colors.indigo,
   ];
+
+  final TextEditingController _incomeLabelController = TextEditingController();
+  final TextEditingController _expenseLabelController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // تهيئة قيم التسميات الحالية
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+      _incomeLabelController.text = themeProvider.incomeLabel;
+      _expenseLabelController.text = themeProvider.expenseLabel;
+    });
+  }
+
+  @override
+  void dispose() {
+    _incomeLabelController.dispose();
+    _expenseLabelController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,27 +112,163 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
 
+          const SizedBox(height: 16),
+
+          // قسم تخصيص تسميات العمليات
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.edit, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'تخصيص تسميات العمليات',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'يمكنك تغيير أسماء العمليات لتناسب احتياجاتك',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // حقل تعديل تسمية العمليات الواردة
+                  TextField(
+                    controller: _incomeLabelController,
+                    decoration: InputDecoration(
+                      labelText: 'تسمية العمليات الواردة',
+                      hintText: 'مثال: دخل، إيراد، ربح',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.arrow_downward, color: Colors.green),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.save),
+                        onPressed: () {
+                          themeProvider.setIncomeLabel(_incomeLabelController.text);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم حفظ تسمية العمليات الواردة'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // حقل تعديل تسمية العمليات الصادرة
+                  TextField(
+                    controller: _expenseLabelController,
+                    decoration: InputDecoration(
+                      labelText: 'تسمية العمليات الصادرة',
+                      hintText: 'مثال: مصروف، خرج، دفع',
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.arrow_upward, color: Colors.red),
+                      suffixIcon: IconButton(
+                        icon: const Icon(Icons.save),
+                        onPressed: () {
+                          themeProvider.setExpenseLabel(_expenseLabelController.text);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم حفظ تسمية العمليات الصادرة'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // زر إعادة تعيين التسميات
+                  Center(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('إعادة تعيين التسميات'),
+                            content: const Text('هل تريد إعادة تعيين تسميات العمليات للقيم الافتراضية؟'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('إلغاء'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  themeProvider.resetLabelsToDefault();
+                                  _incomeLabelController.text = themeProvider.incomeLabel;
+                                  _expenseLabelController.text = themeProvider.expenseLabel;
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('تم إعادة تعيين التسميات بنجاح'),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                },
+                                child: const Text('موافق'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.refresh, color: Colors.orange),
+                      label: const Text('إعادة تعيين التسميات'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
         
+          const SizedBox(height: 16),
+
           // Reset Settings
           Card(
             child: ListTile(
               leading: const Icon(Icons.restart_alt, color: Colors.red),
-              title: const Text('إعادة التعيين', style: TextStyle(color: Colors.red)),
+              title: const Text('إعادة تعيين جميع الإعدادات', style: TextStyle(color: Colors.red)),
+              subtitle: const Text('استعادة جميع الإعدادات للقيم الافتراضية'),
               onTap: () {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('إعادة التعيين'),
-                    content: const Text('هل تريد استعادة الإعدادات الافتراضية؟'),
+                    title: const Text('إعادة تعيين جميع الإعدادات'),
+                    content: const Text('هل تريد استعادة جميع الإعدادات للقيم الافتراضية؟ هذا يشمل المظهر والألوان وتسميات العمليات.'),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         child: const Text('إلغاء'),
                       ),
                       TextButton(
-                        onPressed: () {
-                          themeProvider.clearPreferences();
+                        onPressed: () async {
+                          // إعادة تعيين جميع الإعدادات مع تحديث العمليات
+                          await themeProvider.resetAllSettings();
+                          
+                          // تحديث حقول النص
+                          _incomeLabelController.text = themeProvider.incomeLabel;
+                          _expenseLabelController.text = themeProvider.expenseLabel;
+                          
                           Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('تم إعادة تعيين جميع الإعدادات وتحديث العمليات بنجاح'),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
                         },
                         child: const Text('موافق', style: TextStyle(color: Colors.red)),
                       ),

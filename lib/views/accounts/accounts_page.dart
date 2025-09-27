@@ -3,6 +3,17 @@ import 'package:test1/models/account.dart';
 import '../../../data.dart';
 import '../../controllers/accounts_controller.dart';
 import '../transactions/transactions_page.dart';
+import 'edit_account_dialog.dart';
+
+/**
+ * صفحة عرض الحسابات
+ * 
+ * هذه الصفحة تعرض:
+ * - جميع الحسابات مقسمة حسب التصنيفات
+ * - إمكانية التنقل بين التصنيفات بالتمرير
+ * - النقر على الحساب لعرض عملياته
+ * - النقر المطول على الحساب لتعديل بياناته
+ */
 
 class AccountsPage extends StatefulWidget {
   const AccountsPage({super.key});
@@ -12,10 +23,14 @@ class AccountsPage extends StatefulWidget {
 }
 
 class _AccountsPageState extends State<AccountsPage> {
-  final PageController _pageController = PageController();
-  final _controller = AccountsController();
-  int _currentIndex = 0;
+  final PageController _pageController = PageController(); // متحكم في صفحات التصنيفات
+  final _controller = AccountsController(); // متحكم عمليات الحسابات
+  int _currentIndex = 0; // فهرس التصنيف الحالي
 
+  /**
+   * الحصول على قائمة التصنيفات المفعلة
+   * يتم إضافة "الكل" في البداية لعرض جميع الحسابات
+   */
   List<String> get _categories {
     try {
       // تصفية التصنيفات المعطلة فقط
@@ -29,6 +44,10 @@ class _AccountsPageState extends State<AccountsPage> {
     }
   }
 
+  /**
+   * الحصول على الحسابات حسب التصنيف
+   * إذا كان الفهرس 0 يتم إرجاع جميع الحسابات
+   */
   Future<List<Account>> _getAccountsForCategory(int index) async {
     try {
       if (index == 0) {
@@ -40,6 +59,92 @@ class _AccountsPageState extends State<AccountsPage> {
     } catch (e) {
       return []; // إرجاع قائمة فارغة إذا حدث خطأ
     }
+  }
+
+  /**
+   * الحصول على اسم التصنيف من معرفه
+   * يستخدم لعرض اسم التصنيف بدلاً من الرقم
+   */
+  String _getCategoryName(int categoryId) {
+    try {
+      final category = categories.firstWhere(
+        (cat) => cat['id'] == categoryId,
+        orElse: () => {'name': 'غير محدد'},
+      );
+      return category['name'] as String;
+    } catch (e) {
+      return 'غير محدد';
+    }
+  }
+
+  /**
+   * فتح نافذة تعديل بيانات الحساب - محدث ومصحح
+   * يتم استدعاؤها عند النقر المطول على الحساب
+   */
+  void _editAccount(Account account) async {
+    print('فتح نافذة تعديل الحساب: ${account.name} (ID: ${account.id})');
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => EditAccountDialog(
+        account: account,
+        onSaved: () {
+          print('تم استدعاء onSaved - سيتم تحديث الواجهة');
+          // إجبار إعادة تحميل البيانات بالقوة
+          _forceRefresh();
+        },
+      ),
+    );
+    
+    // تحديث إضافي بعد إغلاق النافذة
+    if (result == true || result == null) {
+      print('تحديث إضافي بعد إغلاق نافذة التعديل');
+      _forceRefresh();
+    }
+  }
+  
+  /**
+   * إجبار تحديث شامل للواجهة وإعادة تحميل البيانات من قاعدة البيانات
+   */
+  void _forceRefresh() async {
+    print('إجبار تحديث شامل للواجهة وإعادة تحميل من قاعدة البيانات');
+    
+    // إعادة تحميل البيانات من قاعدة البيانات
+    try {
+      final dbAccounts = await _controller.listAcounts();
+      print('تم تحميل ${dbAccounts.length} حساب من قاعدة البيانات');
+      
+      // تحديث القائمة المؤقتة للتوافق مع الشاشات الأخرى
+      accounts.clear();
+      for (var account in dbAccounts) {
+        accounts.add({
+          'id': account.id,
+          'name': account.name,
+          'balance': account.balance,
+          'categoryId': account.categoryId,
+        });
+      }
+      
+      // حفظ التحديثات
+      await DataPersistence.saveAccounts();
+      print('تم مزامنة البيانات مع التخزين المحلي');
+    } catch (e) {
+      print('خطأ في إعادة تحميل البيانات: $e');
+    }
+    
+    // إجبار إعادة بناء الواجهة
+    if (mounted) {
+      setState(() {
+        _currentIndex = _currentIndex; // تحديث وهمي لإجبار rebuild
+      });
+    }
+    
+    // تأخير بسيط ثم تحديث إضافي
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (mounted) {
+        setState(() {});
+      }
+    });
   }
 
   @override
@@ -150,49 +255,9 @@ class _AccountsPageState extends State<AccountsPage> {
                               ),
                             ],
                           ),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 8,
-                            ),
-                            leading: Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Colors.blue.withOpacity(0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  account.name.isNotEmpty
-                                      ? account.name[0].toUpperCase()
-                                      : "?",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue[700],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              account.name,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                            subtitle: Text(
-                              "${account.categoryId}",
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
-                            ),
-                            trailing: Icon(
-                              Icons.chevron_right,
-                              color: Colors.grey[400],
-                            ),
+                          // عنصر قائمة الحساب مع دعم النقر العادي والمطول
+                          child: GestureDetector(
+                            // النقر العادي - فتح صفحة العمليات
                             onTap: () {
                               Navigator.push(
                                 context,
@@ -202,6 +267,56 @@ class _AccountsPageState extends State<AccountsPage> {
                                 ),
                               ).then((_) => setState(() {}));
                             },
+                            // النقر المطول - فتح نافذة التعديل
+                            onLongPress: () => _editAccount(account),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              // رمز الحساب (أول حرف من الاسم)
+                              leading: Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    account.name.isNotEmpty
+                                        ? account.name[0].toUpperCase()
+                                        : "?",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[700],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              // اسم الحساب
+                              title: Text(
+                                account.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              // اسم التصنيف (بدلاً من الرقم)
+                              subtitle: Text(
+                                _getCategoryName(account.categoryId),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                              // سهم لليمين للدلالة على إمكانية النقر
+                              trailing: Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey[400],
+                              ),
+                            ),
                           ),
                         );
                       },

@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+//import 'package:google_fonts/google_fonts.dart';
+import 'package:test1/features/currency_exchange/currency_exchange_page.dart';
 import 'package:test1/services/theme_provider.dart';
 import 'package:test1/views/CategoriesPage.dart';
 import 'package:test1/views/accounts/accounts_page.dart';
 import 'package:test1/views/accounts/add_account_page.dart';
 import 'package:test1/views/settings_page.dart';
-
+import 'data.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Load saved data when app starts
+  await DataPersistence.loadAllData();
+
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
@@ -24,6 +30,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        final TextTheme baseLightTextTheme = ThemeData.light().textTheme;
+        final TextTheme baseDarkTextTheme = ThemeData.dark().textTheme;
+
+        final TextTheme arabicLightTextTheme = baseLightTextTheme.apply(
+          fontFamily: 'Cairo-Light.ttf',
+        );
+
+        final TextTheme arabicDarkTextTheme = baseDarkTextTheme.apply(
+          fontFamily: 'Cairo-Light.ttf',
+        );
+
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'مدونة الحسابات',
@@ -32,8 +49,11 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(
               seedColor: themeProvider.primaryColor,
               primary: themeProvider.primaryColor,
+              brightness: Brightness.light,
             ),
             brightness: Brightness.light,
+            textTheme: arabicLightTextTheme,
+            fontFamily: 'Cairo',
           ),
           darkTheme: ThemeData(
             useMaterial3: true,
@@ -43,8 +63,11 @@ class MyApp extends StatelessWidget {
               brightness: Brightness.dark,
             ),
             brightness: Brightness.dark,
+            textTheme: arabicDarkTextTheme,
+            fontFamily: 'Cairo',
           ),
           themeMode: themeProvider.themeMode,
+          themeAnimationDuration: const Duration(milliseconds: 100),
           home: const HomePage(),
         );
       },
@@ -52,7 +75,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// باقي الكود...
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -61,14 +83,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
-
-  // Only keep the AccountsPage in the pages list
-  final List<Widget> _pages = [
-    const AccountsPage(),
-    Container(), // Placeholder for the second tab
-  ];
-
+  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   _onDrawerItemSelected(String item) {
@@ -79,6 +94,12 @@ class _HomePageState extends State<HomePage> {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CategoriesPage()),
+        );
+        break;
+        case 'تحويل العملات': // العنصر الجديد
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CurrencyExchangePage()),
         );
         break;
       case 'الإعدادات':
@@ -135,31 +156,21 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
       drawer: _buildDrawer(context),
-      body: _pages[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: (i) {
-          if (i == 1) {
-            // Navigate to AddAccountPage with push and refresh callback
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AddAccountPage()),
-            ).then((_) {
-              // This will refresh the accounts page when you return
-              if (mounted) setState(() {});
-            });
-          } else {
-            setState(() => _selectedIndex = i);
-          }
+      body: const AccountsPage(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddAccountPage()),
+          ).then((_) {
+            // This will refresh the accounts page when you return
+            if (mounted) setState(() {});
+          });
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance),
-            label: 'الحسابات',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.add), label: 'إضافة حساب'),
-        ],
+        icon: const Icon(Icons.add),
+        label: const Text('إضافة حساب'),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
@@ -198,6 +209,12 @@ class _HomePageState extends State<HomePage> {
                   icon: Icons.category,
                   title: 'التصنيفات',
                   onTap: () => _onDrawerItemSelected('التصنيفات'),
+                ),
+                 _buildDrawerItem( // الجديد
+                  context,
+                  icon: Icons.currency_exchange,
+                  title: 'تحويل العملات',
+                  onTap: () => _onDrawerItemSelected('تحويل العملات'),
                 ),
                 _buildDrawerItem(
                   context,
@@ -244,16 +261,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildDrawerItem(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-      title: Text(title, style: const TextStyle(fontSize: 16)),
-      onTap: onTap,
-    );
-  }
+Widget _buildDrawerItem(
+  BuildContext context, {
+  required IconData icon,
+  required String title,
+  required VoidCallback onTap,
+}) {
+  return ListTile(
+    leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+    title: Text(title, style: const TextStyle(fontSize: 16)),
+    onTap: onTap,
+  );
+}
 }
