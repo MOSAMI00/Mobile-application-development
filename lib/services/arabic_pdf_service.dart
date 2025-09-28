@@ -99,295 +99,184 @@ class ArabicPDFService {
         'الإحصائيات: الرصيد=$totalBalance، الدخل=$totalIncome، المصروفات=$totalExpense',
       );
 
-      // إنشاء مستند PDF جديد بسيط
       final pdf = pw.Document();
+      final logoData = await rootBundle.load(
+        'assets/images/accounting blog logo.jpg',
+      );
+      final logoBytes = logoData.buffer.asUint8List();
+      final logoImage = pw.MemoryImage(logoBytes);
 
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
           textDirection: pw.TextDirection.rtl,
-          margin: const pw.EdgeInsets.all(20),
-          build: (pw.Context context) {
-            // أنماط النص البسيطة والواضحة
-            final titleStyle = pw.TextStyle(
-              fontSize: 24,
-              color: PdfColors.blue800,
-              font: arabicFont,
-              fontWeight: pw.FontWeight.bold,
-            );
-            final headerStyle = pw.TextStyle(
-              fontSize: 18,
-              color: PdfColors.black,
-              font: arabicFont,
-              fontWeight: pw.FontWeight.bold,
-            );
-            final textStyle = pw.TextStyle(
-              fontSize: 14,
-              color: PdfColors.black,
-              font: arabicFont,
-            );
+          margin: const pw.EdgeInsets.all(25),
 
-            return pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                // عنوان التقرير بسيط وجميل
-                pw.Container(
-                  width: double.infinity,
-                  padding: const pw.EdgeInsets.all(20),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.blue50,
-                    border: pw.Border.all(color: PdfColors.blue300, width: 2),
-                    borderRadius: pw.BorderRadius.circular(10),
-                  ),
-                  child: pw.Column(
-                    children: [
-                      pw.Text(
-                        'تقرير الحساب المالي',
-                        style: titleStyle,
-                        textAlign: pw.TextAlign.center,
-                      ),
-                      pw.SizedBox(height: 10),
-                      pw.Text(
-                        'اسم الحساب: ${account['name']}',
-                        style: headerStyle,
-                        textAlign: pw.TextAlign.center,
-                      ),
-                      pw.Text(
-                        'تاريخ التقرير: ${DateTime.now().toString().split(' ')[0]}',
-                        style: textStyle,
-                        textAlign: pw.TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-
-                pw.SizedBox(height: 20),
-
-                // ملخص الحساب بسيط وواضح
-                pw.Container(
-                  width: double.infinity,
-                  padding: const pw.EdgeInsets.all(15),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.green50,
-                    border: pw.Border.all(color: PdfColors.green300, width: 1),
-                    borderRadius: pw.BorderRadius.circular(8),
-                  ),
-                  child: pw.Column(
-                    crossAxisAlignment: pw.CrossAxisAlignment.start,
-                    children: [
-                      pw.Text('ملخص الحساب:', style: headerStyle),
-                      pw.SizedBox(height: 10),
-
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text('الرصيد الحالي:', style: textStyle),
-                          pw.Text(
-                            '${totalBalance.toStringAsFixed(2)} ريال',
-                            style: textStyle.copyWith(
-                              color: totalBalance >= 0
-                                  ? PdfColors.green700
-                                  : PdfColors.red700,
-                              fontWeight: pw.FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.SizedBox(height: 5),
-
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text(
-                            'إجمالي ${themeProvider.incomeLabel}:',
-                            style: textStyle,
-                          ),
-                          pw.Text(
-                            '${totalIncome.toStringAsFixed(2)} ريال',
-                            style: textStyle.copyWith(
-                              color: PdfColors.green600,
-                              fontWeight: pw.FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.SizedBox(height: 5),
-
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text(
-                            'إجمالي ${themeProvider.expenseLabel}:',
-                            style: textStyle,
-                          ),
-                          pw.Text(
-                            '${totalExpense.toStringAsFixed(2)} ريال',
-                            style: textStyle.copyWith(
-                              color: PdfColors.red600,
-                              fontWeight: pw.FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      pw.SizedBox(height: 5),
-
-                      pw.Row(
-                        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                        children: [
-                          pw.Text('عدد العمليات:', style: textStyle),
-                          pw.Text(
-                            '${accountTxs.length}',
-                            style: textStyle.copyWith(
-                              fontWeight: pw.FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                pw.SizedBox(height: 20),
-
-                // جدول العمليات بسيط وواضح
-                if (accountTxs.isNotEmpty) ...[
-                  pw.Text('تفاصيل العمليات:', style: headerStyle),
-                  pw.SizedBox(height: 10),
-
-                  pw.Table(
-                    border: pw.TableBorder.all(
-                      color: PdfColors.grey400,
-                      width: 1,
-                    ),
-                    children: [
-                      // رأس الجدول
-                      pw.TableRow(
-                        decoration: const pw.BoxDecoration(
-                          color: PdfColors.blue100,
-                        ),
-                        children: [
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                              'نوع العملية',
-                              style: headerStyle,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                              'المبلغ',
-                              style: headerStyle,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                          pw.Padding(
-                            padding: const pw.EdgeInsets.all(8),
-                            child: pw.Text(
-                              'التاريخ',
-                              style: headerStyle,
-                              textAlign: pw.TextAlign.center,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // صفوف البيانات
-                      ...accountTxs.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final tx = entry.value;
-                        final isEven = index % 2 == 0;
-
-                        return pw.TableRow(
-                          decoration: pw.BoxDecoration(
-                            color: isEven ? PdfColors.grey50 : PdfColors.white,
-                          ),
-                          children: [
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                tx['type']?.toString() ?? 'غير محدد',
-                                style: textStyle,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                '${tx['amount']?.toString() ?? '0'} ريال',
-                                style: textStyle.copyWith(
-                                  color: tx['type'] == themeProvider.incomeLabel
-                                      ? PdfColors.green600
-                                      : PdfColors.red600,
-                                  fontWeight: pw.FontWeight.bold,
-                                ),
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                            pw.Padding(
-                              padding: const pw.EdgeInsets.all(8),
-                              child: pw.Text(
-                                tx['date']?.toString().split(' ')[0] ??
-                                    'غير محدد',
-                                style: textStyle,
-                                textAlign: pw.TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ] else ...[
+          // الهيدر
+          header: (context) => pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: [
+              pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
+                children: [
                   pw.Container(
-                    width: double.infinity,
-                    padding: const pw.EdgeInsets.all(15),
-                    decoration: pw.BoxDecoration(
-                      color: PdfColors.yellow50,
-                      border: pw.Border.all(
-                        color: PdfColors.orange300,
-                        width: 1,
+                    width: 60,
+                    height: 60,
+                    child: pw.Image(logoImage),
+                  ),
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.end,
+                    children: [
+                      pw.Text(
+                        'كشف حساب',
+                        style: pw.TextStyle(
+                          fontSize: 22,
+                          font: arabicFont,
+                          fontWeight: pw.FontWeight.bold,
+                          color: PdfColors.blue900,
+                        ),
                       ),
-                      borderRadius: pw.BorderRadius.circular(8),
-                    ),
-                    child: pw.Text(
-                      'لا توجد عمليات مسجلة لهذا الحساب',
-                      style: textStyle,
-                      textAlign: pw.TextAlign.center,
-                    ),
+                      pw.Text(
+                        '${account['name']}',
+                        style: pw.TextStyle(
+                          fontSize: 14,
+                          font: arabicFont,
+                          color: PdfColors.grey800,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+              pw.Divider(thickness: 1.2, color: PdfColors.grey600),
+            ],
+          ),
 
-                pw.Spacer(),
+          // الفوتر
+          footer: (context) => pw.Container(
+            alignment: pw.Alignment.center,
+            margin: const pw.EdgeInsets.only(top: 10),
+            child: pw.Text(
+              'صفحة ${context.pageNumber} من ${context.pagesCount}',
+              style: pw.TextStyle(
+                font: arabicFont,
+                fontSize: 10,
+                color: PdfColors.grey700,
+              ),
+            ),
+          ),
 
-                // تذييل بسيط وجميل
-                pw.Container(
-                  width: double.infinity,
-                  padding: const pw.EdgeInsets.all(15),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.grey100,
-                    border: pw.Border.all(color: PdfColors.grey300, width: 1),
-                    borderRadius: pw.BorderRadius.circular(8),
-                  ),
-                  child: pw.Column(
-                    children: [
-                      pw.Text(
-                        'تطبيق إدارة الحسابات المالية',
-                        style: headerStyle,
-                        textAlign: pw.TextAlign.center,
-                      ),
-                      pw.SizedBox(height: 5),
-                      pw.Text(
-                        'تم إنشاء التقرير في: ${DateTime.now().toString().substring(0, 19)}',
-                        style: textStyle.copyWith(fontSize: 10),
-                        textAlign: pw.TextAlign.center,
-                      ),
-                    ],
+          build: (pw.Context context) {
+            final headerStyle = pw.TextStyle(
+              fontSize: 14,
+              font: arabicFont,
+              fontWeight: pw.FontWeight.bold,
+              color: PdfColors.white,
+            );
+            final cellStyle = pw.TextStyle(
+              fontSize: 12,
+              font: arabicFont,
+              color: PdfColors.black,
+            );
+
+            // تحديد نص الرصيد
+            String balanceText;
+            if (totalBalance > 0) {
+              balanceText =
+                  "الرصيد الحالي: ${totalBalance.toStringAsFixed(2)} ريال (له)";
+            } else if (totalBalance < 0) {
+              balanceText =
+                  "الرصيد الحالي: ${totalBalance.abs().toStringAsFixed(2)} ريال (عليه)";
+            } else {
+              balanceText = "الرصيد الحالي: 0 ريال";
+            }
+
+            return [
+              // جدول العمليات
+              if (accountTxs.isNotEmpty) ...[
+                pw.SizedBox(height: 15),
+                pw.Text(
+                  'تفاصيل العمليات',
+                  style: pw.TextStyle(
+                    fontSize: 16,
+                    font: arabicFont,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.blue800,
                   ),
                 ),
-              ],
-            );
+                pw.SizedBox(height: 8),
+
+                pw.Table.fromTextArray(
+                  headers: ['التاريخ', 'التفاصيل', 'نوع العملية', 'المبلغ'],
+                  data: accountTxs.map((tx) {
+                    return [
+                      tx['date']?.toString().split(' ')[0] ?? 'غير محدد',
+                      tx['category']?.toString() ?? '-',
+                      tx['type']?.toString() ?? 'غير محدد',
+                      '${tx['amount'] ?? 0} ريال',
+                    ];
+                  }).toList(),
+                  headerStyle: headerStyle,
+                  headerDecoration: pw.BoxDecoration(color: PdfColors.blue700),
+                  cellStyle: cellStyle,
+                  cellAlignment: pw.Alignment.center,
+                  border: pw.TableBorder.all(
+                    color: PdfColors.grey400,
+                    width: 0.7,
+                  ),
+                  columnWidths: {
+                    0: const pw.FlexColumnWidth(2),
+                    1: const pw.FlexColumnWidth(4),
+                    2: const pw.FlexColumnWidth(2),
+                    3: const pw.FlexColumnWidth(2),
+                  },
+                ),
+              ] else
+                pw.Text('لا توجد عمليات مسجلة', style: cellStyle),
+
+              pw.SizedBox(height: 25),
+
+              // ملخص الحساب
+              pw.Container(
+                padding: const pw.EdgeInsets.all(15),
+                decoration: pw.BoxDecoration(
+                  color: PdfColors.grey100,
+                  borderRadius: pw.BorderRadius.circular(8),
+                  border: pw.Border.all(color: PdfColors.grey400, width: 0.8),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'ملخص الحساب',
+                      style: pw.TextStyle(
+                        fontSize: 16,
+                        font: arabicFont,
+                        fontWeight: pw.FontWeight.bold,
+                        color: PdfColors.blue900,
+                      ),
+                    ),
+                    pw.SizedBox(height: 10),
+                    pw.Bullet(text: balanceText, style: cellStyle),
+                    pw.Bullet(
+                      text:
+                          'إجمالي الدخل (له) : ${totalIncome.toStringAsFixed(2)} ريال',
+                      style: cellStyle,
+                    ),
+                    pw.Bullet(
+                      text:
+                          'إجمالي المصروفات (عليه) :${totalExpense.toStringAsFixed(2)} ريال',
+                      style: cellStyle,
+                    ),
+                    pw.Bullet(
+                      text: 'عدد العمليات: ${accountTxs.length}',
+                      style: cellStyle,
+                    ),
+                  ],
+                ),
+              ),
+            ];
           },
         ),
       );

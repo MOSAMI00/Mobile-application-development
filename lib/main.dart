@@ -83,7 +83,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   _onDrawerItemSelected(String item) {
@@ -96,7 +95,7 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (_) => const CategoriesPage()),
         );
         break;
-        case 'تحويل العملات': // العنصر الجديد
+      case 'تحويل العملات':
         Navigator.push(
           context,
           MaterialPageRoute(builder: (_) => const CurrencyExchangePage()),
@@ -108,9 +107,9 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (_) => const SettingsPage()),
         );
         break;
-      case 'التقارير':
-      case 'كشف الحساب':
-      case 'النسخ الاحتياطي':
+      case 'البيانات الشخصية':
+        _showComingSoonDialog(item); // أو افتح صفحة جديدة لما تجهز
+        break;
       case 'المساعدة':
       case 'عن التطبيق':
         _showComingSoonDialog(item);
@@ -189,12 +188,10 @@ class _HomePageState extends State<HomePage> {
             ),
             currentAccountPicture: const CircleAvatar(
               radius: 30,
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.account_balance_wallet,
-                color: Colors.blue,
-                size: 35,
+              backgroundImage: AssetImage(
+                'assets/images/accounting blog logo.jpg',
               ),
+              backgroundColor: Colors.white,
             ),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
@@ -210,7 +207,7 @@ class _HomePageState extends State<HomePage> {
                   title: 'التصنيفات',
                   onTap: () => _onDrawerItemSelected('التصنيفات'),
                 ),
-                 _buildDrawerItem( // الجديد
+                _buildDrawerItem(
                   context,
                   icon: Icons.currency_exchange,
                   title: 'تحويل العملات',
@@ -218,21 +215,9 @@ class _HomePageState extends State<HomePage> {
                 ),
                 _buildDrawerItem(
                   context,
-                  icon: Icons.bar_chart,
-                  title: 'التقارير',
-                  onTap: () => _onDrawerItemSelected('التقارير'),
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.account_balance,
-                  title: 'كشف الحساب',
-                  onTap: () => _onDrawerItemSelected('كشف الحساب'),
-                ),
-                _buildDrawerItem(
-                  context,
-                  icon: Icons.backup,
-                  title: 'النسخ الاحتياطي',
-                  onTap: () => _onDrawerItemSelected('النسخ الاحتياطي'),
+                  icon: Icons.person,
+                  title: 'البيانات الشخصية',
+                  onTap: () => _onDrawerItemSelected('البيانات الشخصية'),
                 ),
                 _buildDrawerItem(
                   context,
@@ -261,16 +246,16 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-Widget _buildDrawerItem(
-  BuildContext context, {
-  required IconData icon,
-  required String title,
-  required VoidCallback onTap,
-}) {
-  return ListTile(
-    leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
-    title: Text(title, style: const TextStyle(fontSize: 16)),
-    onTap: onTap,
-  );
-}
+  Widget _buildDrawerItem(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      title: Text(title, style: const TextStyle(fontSize: 16)),
+      onTap: onTap,
+    );
+  }
 }

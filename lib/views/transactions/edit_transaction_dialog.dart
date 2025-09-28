@@ -27,7 +27,9 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
   void initState() {
     super.initState();
     type = widget.transaction['type'];
-    amountCtrl = TextEditingController(text: widget.transaction['amount'].toString());
+    amountCtrl = TextEditingController(
+      text: widget.transaction['amount'].toString(),
+    );
     categoryCtrl = TextEditingController(text: widget.transaction['category']);
     selectedDate = widget.transaction['date'] ?? DateTime.now();
   }
@@ -49,7 +51,9 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
     }
 
     // Find and update the transaction in the global list
-    final index = transactions.indexWhere((tx) => tx['id'] == widget.transaction['id']);
+    final index = transactions.indexWhere(
+      (tx) => tx['id'] == widget.transaction['id'],
+    );
     if (index != -1) {
       transactions[index] = {
         ...transactions[index],
@@ -93,7 +97,10 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
             Consumer<ThemeProvider>(
               builder: (context, themeProvider, child) {
                 // التأكد من أن نوع العملية موجود في الخيارات الحالية
-                final availableTypes = [themeProvider.incomeLabel, themeProvider.expenseLabel];
+                final availableTypes = [
+                  themeProvider.incomeLabel,
+                  themeProvider.expenseLabel,
+                ];
                 if (!availableTypes.contains(type)) {
                   // إذا لم يكن النوع موجوداً، استخدم القيمة الافتراضية
                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -102,9 +109,11 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
                     });
                   });
                 }
-                
+
                 return DropdownButtonFormField<String>(
-                  value: availableTypes.contains(type) ? type : themeProvider.incomeLabel,
+                  value: availableTypes.contains(type)
+                      ? type
+                      : themeProvider.incomeLabel,
                   decoration: const InputDecoration(
                     labelText: 'نوع العملية',
                     border: OutlineInputBorder(),
@@ -117,7 +126,7 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
               },
             ),
             const SizedBox(height: 16),
-            
+
             // Amount Field
             TextField(
               controller: amountCtrl,
@@ -129,7 +138,7 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Category Field
             TextField(
               controller: categoryCtrl,
@@ -140,7 +149,7 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Date Picker
             InkWell(
               onTap: _selectDate,
@@ -161,13 +170,31 @@ class _EditTransactionDialogState extends State<EditTransactionDialog> {
       ),
       actions: [
         TextButton(
+          onPressed: () async {
+            final index = transactions.indexWhere(
+              (tx) => tx['id'] == widget.transaction['id'],
+            );
+            if (index != -1) {
+              transactions.removeAt(index);
+              await DataPersistence.saveTransactions();
+
+              widget.onSaved();
+              Navigator.pop(context);
+            }
+          },
+          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          child: const Text('حذف'),
+        ),
+
+        // زر الإلغاء
+        TextButton(
           onPressed: () => Navigator.pop(context),
           child: const Text('إلغاء'),
         ),
-        ElevatedButton(
-          onPressed: _save,
-          child: const Text('حفظ'),
-        ),
+
+        // زر الحفظ
+        ElevatedButton(onPressed: _save, child: const Text('حفظ')),
+
       ],
     );
   }
